@@ -1,0 +1,160 @@
+version: "2.9"
+
+networks:
+  crypto_net:
+    name: crypto_net
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.10.0/24
+
+
+services:
+  monitor:
+    image: monitor
+    build:
+      context: ./monitor
+      dockerfile: ./Dockerfile
+    depends_on:
+      - amm_service
+      - oracle_service
+    environment:
+    - PYTHONUNBUFFERED=1
+    - FLASK_SERVER_PORT=${FLASK_SERVER_PORT}
+    - AMM_SERVER_ADDR=${AMM_SERVER_ADDR}
+    - AMM_SERVER_PORT=${AMM_SERVER_PORT}
+    - ORACLE_SERVER_ADDR=${ORACLE_SERVER_ADDR}
+    - ORACLE_SERVER_PORT=${ORACLE_SERVER_PORT}
+    ports:
+      - 5000:5000
+    networks:
+      - crypto_net
+    logging:
+      driver: "none"
+
+  amm_service:
+    image: amm
+    build:
+      context: ./amm
+      dockerfile: ./Dockerfile
+    depends_on:
+      - oracle_service
+    environment:
+    - DURATION=${DURATION}
+    - PYTHONUNBUFFERED=1
+    - TRANSACTION_BROADCAST=${TRANSACTION_BROADCAST}
+    - NODE_BROADCAST=${NODE_BROADCAST}
+    - AMM_SERVER_ADDR=${AMM_SERVER_ADDR}
+    ports:
+      - 5001:5000
+    networks:
+      crypto_net:
+        ipv4_address: 192.168.10.3
+    volumes:
+      - ./output:/usr/src/app/log
+    # logging:
+    #   driver: "none"
+
+
+  oracle_service:
+    image: oracle
+    build:
+      context: ./oracle
+      dockerfile: ./Dockerfile
+    environment:
+      - DURATION=${DURATION}
+      - PYTHONUNBUFFERED=1
+      - AMM_SERVER_ADDR=${AMM_SERVER_ADDR}
+      - AMM_SERVER_PORT=${AMM_SERVER_PORT}
+      - APIKEY=${APIKEY}
+    ports:
+      - 5002:5000
+    networks:
+      crypto_net:
+        ipv4_address: 192.168.10.4
+    volumes:
+      - ./output:/usr/src/app/log
+    # logging:
+    #   driver: "none"
+
+  
+  node:
+    image: node
+    build: 
+      context: ./node/
+      dockerfile: Dockerfile
+    depends_on:
+      - amm_service
+      - oracle_service
+    environment:
+      - DURATION=${DURATION}
+      - DELAY=${DELAY}
+      - PYTHONUNBUFFERED=1
+      - AMM_SERVER_ADDR=${AMM_SERVER_ADDR}
+      - ORACLE_SERVER_ADDR=${ORACLE_SERVER_ADDR}
+      - ORACLE_SERVER_PORT=${ORACLE_SERVER_PORT}
+      - AMM_SERVER_PORT=${AMM_SERVER_PORT}
+      - TRANSACTION_BROADCAST=${TRANSACTION_BROADCAST}
+      - NODE_BROADCAST=${NODE_BROADCAST}
+      - SIGNATURE_VERIFY_PORT=${SIGNATURE_VERIFY_PORT}
+      - METRICS_FILE=${METRICS_FILE}
+    networks:
+      - crypto_net
+    volumes:
+    - ./output:/usr/src/node
+    # ports:
+    #   - 5005:5005
+    cpus: 0.2
+    mem_limit: 128MB
+
+  node_attacker:
+    image: node_attacker
+    build: 
+      context: ./node_attacker/
+      dockerfile: Dockerfile
+    depends_on:
+      - amm_service
+      - oracle_service
+    environment:
+      - DURATION=${DURATION}
+      - DELAY=${DELAY}
+      - PYTHONUNBUFFERED=1
+      - AMM_SERVER_ADDR=${AMM_SERVER_ADDR}
+      - ORACLE_SERVER_ADDR=${ORACLE_SERVER_ADDR}
+      - ORACLE_SERVER_PORT=${ORACLE_SERVER_PORT}
+      - AMM_SERVER_PORT=${AMM_SERVER_PORT}
+      - TRANSACTION_BROADCAST=${TRANSACTION_BROADCAST}
+      - NODE_BROADCAST=${NODE_BROADCAST}
+      - SIGNATURE_VERIFY_PORT=${SIGNATURE_VERIFY_PORT}
+      - METRICS_FILE=attacker${METRICS_FILE}
+    networks:
+      - crypto_net
+    volumes:
+      - ./output:/usr/src/node
+    # ports:
+    #   - 5005:5005
+    cpus: 0.2
+    mem_limit: 128MB
+
+
+  miner:
+    image: miner
+    build:
+      context: ./miner
+      dockerfile: ./Dockerfile
+    depends_on:
+      - amm_service
+      - oracle_service
+    environment:
+      - MINER_METRICS_FILE=${MINER_METRICS_FILE}
+      - BLOCK_CHAIN_FILE=${BLOCK_CHAIN_FILE}
+      - TRANSACTION_BROADCAST=${TRANSACTION_BROADCAST}
+      - NODE_BROADCAST=${NODE_BROADCAST}
+      - SIGNATURE_VERIFY_PORT=${SIGNATURE_VERIFY_PORT}
+      - AMM_SERVER_ADDR=${AMM_SERVER_ADDR}
+    networks:
+      - crypto_net
+    volumes:
+      - ./output:/usr/src/miner
+    logging:
+      driver: "none"

@@ -1,0 +1,306 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="content-container">
+    <div class="charts-column">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <canvas id="canvas"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <canvas id="canvas2"></canvas>
+                </div>
+            </div>
+        </div>
+        <textarea id="log-window" rows="7" cols="30"></textarea>
+    </div>
+
+    <div class="oracle-container">
+        <div class="oracle-table">
+            <div class="oracle-table-header-container">
+                <div class="oracle-table-header">
+                    <div data-bn-type="text" class="bigger-text">Kolekcje</div>
+                    <div data-bn-type="text" class="bigger-text">Wolumen</div>
+                    <div data-bn-type="text" class="bigger-text">Cena</div>
+                </div>
+            </div>
+            <div class="oracle-table-content-container">
+                {% for changeEntry in changes %}
+                <div class="oracle-table-row">
+                    <div class="oracle-table-cell-container">
+                        <div class="oracle-table-row-cell">
+                            <!--                            <div class="medium-text">Rekt Dogs</div>-->
+                            <div class="medium-text">{{changeEntry.currency}}</div>
+                        </div>
+                    </div>
+                    <div class="oracle-table-cell-container">
+                        <div class="oracle-table-row-cell-percentage">
+                            <!--                            <div class="medium-text">116.86 ETH</div>-->
+                            <div id="{{changeEntry.currency}}-volume-id" class="medium-text">0</div>
+                            <div id="{{changeEntry.currency}}-volume-change-id" class="green-percentage">+0%</div>
+                            <!--                            <div class="green-percentage">+18.51%</div>-->
+                        </div>
+                    </div>
+                    <div class="oracle-table-cell-container">
+                        <div class="oracle-table-row-cell-percentage">
+                            <!--                            <div class="medium-text">18.3K ETH</div>-->
+                            <div id="{{changeEntry.currency}}-price-id" class="medium-text">0</div>
+                            <div id="{{changeEntry.currency}}-price-change-id" class="green-percentage">+0%</div>
+                            <!--                            <div class="green-percentage">+348.99%</div>-->
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <h2 style="margin: 75px 0px 50px 75px;">Przewidywane zmiany:</h2>
+
+        <div class="oracle-table">
+            <div class="oracle-table-header-container">
+                <div class="oracle-table-header">
+                    <div data-bn-type="text" class="bigger-text">Kolekcje</div>
+                    <div data-bn-type="text" class="bigger-text">Wolumen</div>
+                    <div data-bn-type="text" class="bigger-text">Cena</div>
+                </div>
+            </div>
+            <div class="oracle-table-content-container">
+                {% for changeEntry in changes %}
+                <div class="oracle-table-row">
+                    <div class="oracle-table-cell-container">
+                        <div class="oracle-table-row-cell">
+                            <!--                            <div class="medium-text">Rekt Dogs</div>-->
+                            <div class="medium-text">{{changeEntry.currency}}</div>
+                        </div>
+                    </div>
+                    <div class="oracle-table-cell-container">
+                        <div class="oracle-table-row-cell-percentage">
+                            <!--                            <div class="medium-text">116.86 ETH</div>-->
+                            <div id="{{changeEntry.currency}}-oracle-volume-id" class="medium-text">0</div>
+                            <div id="{{changeEntry.currency}}-oracle-volume-change-id" class="green-percentage">+0%</div>
+                            <!--                            <div class="green-percentage">+18.51%</div>-->
+                        </div>
+                    </div>
+                    <div class="oracle-table-cell-container">
+                        <div class="oracle-table-row-cell-percentage">
+                            <!--                            <div class="medium-text">18.3K ETH</div>-->
+                            <div id="{{changeEntry.currency}}-oracle-price-id" class="medium-text">0</div>
+                            <div id="{{changeEntry.currency}}-oracle-price-change-id" class="green-percentage">+0%</div>
+                            <!--                            <div class="green-percentage">+348.99%</div>-->
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.6.1/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.min.js"></script>
+<script>
+    function randomColor() {
+            var r = Math.floor(Math.random() * 255);
+            var g = Math.floor(Math.random() * 255);
+            var b = Math.floor(Math.random() * 255);
+            return "rgb(" + r + "," + g + "," + b + ")";
+         };
+
+</script>
+<script>
+    $(document).ready(function () {
+        const amountConfig = {
+            type: 'line',
+            data: {
+                labels: Array(250).fill("00:00:00"),
+                datasets: []
+            },
+            options: {
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Value Real-Time chart'
+                },
+                tooltips: { enabled: false },
+                hover: { mode: null },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Time'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Value'
+                        }
+                    }]
+                }
+            }
+        };
+
+        const priceConfig = {
+            type: 'line',
+            data: {
+                labels: Array(250).fill("00:00:00"),
+                datasets: []
+            },
+            options: {
+                legend: {
+                    display: true
+                },
+                responsive: true,
+                title: {
+                    display: true,
+                    text: 'Value Real-Time price chart'
+                },
+                tooltips: { enabled: false },
+                hover: { mode: null },
+                scales: {
+                    xAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Time'
+                        }
+                    }],
+                    yAxes: [{
+                        display: true,
+                        scaleLabel: {
+                            display: true,
+                            labelString: 'Value'
+                        }
+                    }]
+                }
+            }
+        };
+
+        const context2 = document.getElementById('canvas2').getContext('2d');
+        const context = document.getElementById('canvas').getContext('2d');
+
+        const lineChart = new Chart(context, amountConfig);
+        const lineChart2 = new Chart(context2, priceConfig);
+
+        const source = new EventSource("/chart-data");
+
+        source.onmessage = function (event) {
+            var colors = []
+            const data = JSON.parse(event.data);
+            data.prices.forEach((priceEntry, index) => {
+                const datasetIndex = priceConfig.data.datasets.findIndex(object => object.label === priceEntry.symbol);
+                if (datasetIndex === -1) {
+                    // 273
+                    colors.push(randomColor())
+                    priceConfig.data.datasets.push(
+                        {
+                            label: priceEntry.symbol,
+                            data: Array(250).fill(null),
+                            borderColor: colors[index],
+                            backgroundColor: 'rgb(255, 0, 85)',
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            hidden: false
+                        }
+                    );
+                } else {
+                    priceConfig.data.datasets[datasetIndex].data.push(priceEntry.usdprice)
+                }
+            })
+
+            data.amounts.forEach((amountEntry, index) => {
+                // console.log(amountEntry)
+                const datasetIndex = amountConfig.data.datasets.findIndex(object => object.label === amountEntry.symbol);
+                if (datasetIndex === -1) {
+                    amountConfig.data.datasets.push(
+                        {
+                            label: amountEntry.symbol,
+                            data: Array(250).fill(null),
+                            borderColor: colors[index],
+                            backgroundColor: 'rgb(255, 0, 85)',
+                            fill: false,
+                            tension: 0.1,
+                            pointRadius: 0,
+                            hidden: false
+                        }
+                    );
+                } else {
+                    amountConfig.data.datasets[datasetIndex].data.push(amountEntry.amount)
+                }
+            })
+
+            if (amountConfig.data.labels.length === 250) {
+                amountConfig.data.labels.shift();
+                amountConfig.data.datasets.forEach(dataset => {dataset.data.shift();})
+
+                priceConfig.data.labels.shift();
+                priceConfig.data.datasets.forEach(dataset => {dataset.data.shift();})
+            }
+
+            amountConfig.data.labels.push(data.time);
+            // amountConfig.data.datasets[0].data.push(data.amounts.BTC);
+            // amountConfig.data.datasets[1].data.push(data.amounts.ETH);
+            // amountConfig.data.datasets[2].data.push(data.amounts.XAUt);
+            // amountConfig.data.datasets[3].data.push(data.amounts.MKR);
+
+            priceConfig.data.labels.push(data.time);
+            // priceConfig.data.datasets[0].data.push(data.rates.ETH);
+            // priceConfig.data.datasets[1].data.push(data.rates.BTC);
+            lineChart.update();
+            lineChart2.update();
+
+            let logWindow = document.getElementById('log-window');
+            logWindow.innerHTML = data.transactions + '\n';
+        }
+    });
+
+</script>
+<script>
+$(document).ready(function () {
+    const source = new EventSource("/changes-data");
+    source.onmessage = function (event) {
+            const data = JSON.parse(event.data);
+            // data.forEach((entry) => {
+
+            //     var vol = document.getElementById(entry.currency+'-oracle-volume-id');
+            //     var volumechg = document.getElementById(entry.currency+'-oracle-volume-change-id');
+            //     var price = document.getElementById(entry.currency+'-oracle-price-id');
+            //     var pricechg = document.getElementById(entry.currency+'-oracle-price-change-id');
+
+            //     vol.innerHTML = entry.volume;
+            //     price.innerHTML = entry.price;
+
+            //     if (parseInt(entry.change) > 0.0000000001) {
+            //       pricechg.classList.remove('red-percentage');
+            //       pricechg.classList.add('green-percentage');
+            //       pricechg.innerHTML = "+"+entry.change+"%";
+            //     } else {
+            //       pricechg.classList.remove('green-percentage');
+            //       pricechg.classList.add('red-percentage');
+            //       pricechg.innerHTML = entry.change+"%";
+            //     }
+
+            //     if (parseInt(entry.volumeChange) > 0.0000000001) {
+            //       volumechg.classList.remove('red-percentage');
+            //       volumechg.classList.add('green-percentage');
+            //       volumechg.innerHTML = "+"+entry.volumeChange+"%";
+            //     } else {
+            //       volumechg.classList.remove('green-percentage');
+            //       volumechg.classList.add('red-percentage');
+            //       volumechg.innerHTML = entry.volumeChange+"%";
+            //     }
+            // })
+        }
+    });
+
+</script>
+{% endblock content %}

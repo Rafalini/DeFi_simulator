@@ -1,0 +1,25 @@
+{
+    "currencies": [
+        {
+            "name": "etherium",
+            "short": "ETH",
+            "amount": 7000,
+            "minimal_part": 0.001,
+            "id": 1027
+        },
+        {
+            "name": "XAUt",
+            "short": "XAUt",
+            "amount": 7000,
+            "minimal_part": 0.001,
+            "id": 1518
+        },
+        {
+            "name": "maker",
+            "short": "MKR",
+            "amount": 7000,
+            "minimal_part": 0.001,
+            "id": 5176
+        }
+    ]
+}
